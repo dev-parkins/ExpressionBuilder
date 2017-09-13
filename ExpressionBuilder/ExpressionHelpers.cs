@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
@@ -12,12 +13,12 @@ namespace ExpressionBuilder
         eq,
         ne,
         ge,
-        le  
+        le
     }
 
     public static class ExpressionHelper
     {
-        public static Func<T, bool> CreateNewStatement<T>(string[] fields) where T : class
+        public static Expression<Func<T, bool>> CreateNewStatement<T>(IEnumerable<string> fields) where T : class
         {
             //------Get all token arrays that have length == 3
             var bindingsList = fields.ToList().Where(o => o.Split().Length == 3).Select(o => o.Split());
@@ -36,7 +37,7 @@ namespace ExpressionBuilder
             {
                 var prop = type.GetProperty(binding[0]);
                 if (prop == null)
-                    throw new ArgumentException("Property not found");
+                    throw new ArgumentException($"Invalid property: {binding[0]}");
 
                 Expression value = BuildValueExpression(prop.PropertyType, binding[2]);
 
@@ -55,8 +56,7 @@ namespace ExpressionBuilder
                 }
                 filterExpression = Expression.AndAlso(filterExpression, comparison);
             }
-
-            return Expression.Lambda<Func<T, bool>>(filterExpression, pe).Compile();
+            return Expression.Lambda<Func<T, bool>>(filterExpression, pe);
         }
 
         public static Expression BuildOperandExpression(Expression left, string op, Expression right)
@@ -82,7 +82,7 @@ namespace ExpressionBuilder
 
         public static Expression BuildValueExpression(Type propType, string value)
         {
-            if(value == null || value.Equals("null")) //temp - magic string 
+            if (value == null || value.Equals("null")) //temp - magic string 
             {
                 return Expression.Constant(null);
             }
@@ -103,7 +103,7 @@ namespace ExpressionBuilder
             {
                 return Expression.Convert(Expression.Constant(Convert.ToDateTime(value)), typeof(DateTime?));
             }
-            
+
             return Expression.Constant(value);
         }
     }
