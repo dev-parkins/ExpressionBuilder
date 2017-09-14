@@ -41,6 +41,16 @@ namespace ExpressionBuilder.Tests
         }
 
         [TestMethod]
+        public void SingleFilterMultipleResults2()
+        {
+            IList<int> list = new List<int>() { 4 };
+            var filters = getFilters(list);
+            var statement = ExpressionHelper.CreateNewStatement<Person>(filters).Compile();
+            IEnumerable<Person> result = persons.Where(statement);
+            Assert.IsTrue(result.ToList().Count == 1);
+        }
+
+        [TestMethod]
         public void MultipleFiltersSingleResult1()
         {
             IList<int> list = new List<int>() { 0, 3 };

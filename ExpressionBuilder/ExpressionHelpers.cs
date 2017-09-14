@@ -106,9 +106,7 @@ namespace ExpressionBuilder
                 return Expression.Constant(null);
             }
 
-            var convertedValue = Expression.Constant(Convert.ChangeType(value, propType));
             var boxedType = Nullable.GetUnderlyingType(propType);
-
             if (boxedType != null)
             {
                 return Expression.Convert(Expression.Constant(Convert.ChangeType(value, boxedType)), propType);
