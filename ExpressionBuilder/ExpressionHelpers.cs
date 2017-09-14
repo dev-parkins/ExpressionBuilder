@@ -18,10 +18,10 @@ namespace ExpressionBuilder
 
     public static class ExpressionHelper
     {
-        public static Expression<Func<T, bool>> CreateNewStatement<T>(IEnumerable<string> fields) where T : class
+        public static Expression<Func<T, bool>> CreateNewStatement<T>(string fields) where T : class
         {
             //------Get all token arrays that have length == 3
-            var bindingsList = fields.ToList().Where(o => o.Split().Length == 3).Select(o => o.Split());
+            var bindingsList = SplitParameters(fields);
 
             //------Boilerplate items
 
@@ -57,6 +57,57 @@ namespace ExpressionBuilder
                 filterExpression = Expression.AndAlso(filterExpression, comparison);
             }
             return Expression.Lambda<Func<T, bool>>(filterExpression, pe);
+        }
+
+        public static Func<T, bool> CreateNewStatementFunc<T>(string fields) where T : class
+        {
+            //------Get all token arrays that have length == 3
+            var bindingsList = SplitParameters(fields);
+
+            //------Boilerplate items
+
+            var type = typeof(T);
+            var pe = Expression.Parameter(type, "p");
+            Expression selectLeft = null;
+            Expression selectRight = null;
+            Expression filterExpression = null;
+
+            //------Loop through the bindingslist and build Expression list (e.g. value1 = a AND value2 = b ...)
+
+            foreach (var binding in bindingsList)
+            {
+                var prop = type.GetProperty(binding[0]);
+                if (prop == null)
+                    throw new ArgumentException($"Invalid property: {binding[0]}");
+
+                Expression value = BuildValueExpression(prop.PropertyType, binding[2]);
+
+                Expression comparison = BuildOperandExpression(Expression.Property(pe, prop.Name), binding[1], value);
+                if (selectLeft == null)
+                {
+                    selectLeft = comparison;
+                    filterExpression = selectLeft;
+                    continue;
+                }
+                if (selectRight == null)
+                {
+                    selectRight = comparison;
+                    filterExpression = Expression.AndAlso(selectLeft, selectRight);
+                    continue;
+                }
+                filterExpression = Expression.AndAlso(filterExpression, comparison);
+            }
+            return Expression.Lambda<Func<T, bool>>(filterExpression, pe).Compile();
+        }
+
+        public static IEnumerable<string[]> SplitParameters(string fields)
+        {
+            //------check for any AND statements and seperate from there
+            var predicates = fields.Split(" AND ").ToList();
+
+            //------Get all token arrays that have length == 3
+            var inners = predicates.Select(o => o.Split());
+            return inners.Where(o => o.Length == 3);
         }
 
         public static Expression BuildOperandExpression(Expression left, string op, Expression right)

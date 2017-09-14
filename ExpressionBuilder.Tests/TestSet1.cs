@@ -31,19 +31,19 @@ namespace ExpressionBuilder.Tests
             };
 
         [TestMethod]
-        public void SingleResult1()
+        public void SingleResultMultipleConditions()
         {
-            var filters = filter.Where(o => o.Contains("lt")).ToArray();
-            var statement = ExpressionHelper.CreateNewStatement<Person>(filters);
+            var filters = filter.Where(o => o.Contains("lt") || o.Contains("isMarried")).Aggregate((f, s) => $"{f} AND {s}");
+            var statement = ExpressionHelper.CreateNewStatementFunc<Person>(filters);
             IEnumerable<Person> result = persons.Where(statement);
-            Assert.IsTrue(result.ToList().Count > 1);
+            Assert.IsTrue(result.ToList().Count == 1);
         }
 
         [TestMethod]
         public void SingleResult2()
         {
-            var filters = new string[] { filter[5] };
-            var statement = ExpressionHelper.CreateNewStatement<Person>(filters);
+            var filters = filter.ElementAt(5);
+            var statement = ExpressionHelper.CreateNewStatementFunc<Person>(filters);
             IEnumerable<Person> result = persons.Where(statement);
             Assert.IsTrue(result.ToList().Count == 2);
         }
