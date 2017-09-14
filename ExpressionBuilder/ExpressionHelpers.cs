@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 
 namespace ExpressionBuilder
 {
@@ -65,7 +66,7 @@ namespace ExpressionBuilder
         public static IEnumerable<string[]> SplitParameters(string fields)
         {
             //------check for any AND statements and seperate from there
-            var predicates = fields.Split(" AND", StringSplitOptions.RemoveEmptyEntries).Select(o => o.Trim());
+            var predicates = Regex.Split(fields, " AND", RegexOptions.IgnoreCase).Select(o => o.Trim()).Where(o => !String.IsNullOrWhiteSpace(o));
 
             //------Get all token arrays that have length == 3
             var inners = predicates.Select(o => o.Split());
