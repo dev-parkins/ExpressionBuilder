@@ -44,7 +44,7 @@ namespace ExpressionBuilder
 
                 Expression value = BuildValueExpression(prop.PropertyType, binding[2]);
 
-                Expression comparison = BuildOperandExpression(Expression.Property(pe, prop.Name), binding[1], value);
+                Expression comparison = BuildOperandExpression(Expression.Property(pe, prop.Name), binding[1].Trim(), value);
                 if (selectLeft == null)
                 {
                     selectLeft = comparison;
@@ -65,7 +65,7 @@ namespace ExpressionBuilder
         public static IEnumerable<string[]> SplitParameters(string fields)
         {
             //------check for any AND statements and seperate from there
-            var predicates = fields.Split(" AND ").ToList();
+            var predicates = fields.Split(" AND", StringSplitOptions.RemoveEmptyEntries).Select(o => o.Trim());
 
             //------Get all token arrays that have length == 3
             var inners = predicates.Select(o => o.Split());
