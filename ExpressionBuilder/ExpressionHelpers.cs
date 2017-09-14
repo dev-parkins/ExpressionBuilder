@@ -62,47 +62,6 @@ namespace ExpressionBuilder
             return Expression.Lambda<Func<T, bool>>(filterExpression, pe);
         }
 
-        public static Func<T, bool> CreateNewStatementFunc<T>(string fields) where T : class
-        {
-            //------Get all token arrays that have length == 3
-            var bindingsList = SplitParameters(fields);
-
-            //------Boilerplate items
-
-            var type = typeof(T);
-            var pe = Expression.Parameter(type, "p");
-            Expression selectLeft = null;
-            Expression selectRight = null;
-            Expression filterExpression = null;
-
-            //------Loop through the bindingslist and build Expression list (e.g. value1 = a AND value2 = b ...)
-
-            foreach (var binding in bindingsList)
-            {
-                var prop = type.GetProperty(binding[0]);
-                if (prop == null)
-                    throw new ArgumentException($"Invalid property: {binding[0]}");
-
-                Expression value = BuildValueExpression(prop.PropertyType, binding[2]);
-
-                Expression comparison = BuildOperandExpression(Expression.Property(pe, prop.Name), binding[1], value);
-                if (selectLeft == null)
-                {
-                    selectLeft = comparison;
-                    filterExpression = selectLeft;
-                    continue;
-                }
-                if (selectRight == null)
-                {
-                    selectRight = comparison;
-                    filterExpression = Expression.AndAlso(selectLeft, selectRight);
-                    continue;
-                }
-                filterExpression = Expression.AndAlso(filterExpression, comparison);
-            }
-            return Expression.Lambda<Func<T, bool>>(filterExpression, pe).Compile();
-        }
-
         public static IEnumerable<string[]> SplitParameters(string fields)
         {
             //------check for any AND statements and seperate from there

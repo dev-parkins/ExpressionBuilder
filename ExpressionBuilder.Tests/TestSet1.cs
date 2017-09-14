@@ -35,7 +35,7 @@ namespace ExpressionBuilder.Tests
         {
             IList<int> list = new List<int>() { 5 };
             var filters = getFilters(list);
-            var statement = ExpressionHelper.CreateNewStatementFunc<Person>(filters);
+            var statement = ExpressionHelper.CreateNewStatement<Person>(filters).Compile();
             IEnumerable<Person> result = persons.Where(statement);
             Assert.IsTrue(result.ToList().Count == 2);
         }
@@ -45,7 +45,7 @@ namespace ExpressionBuilder.Tests
         {
             IList<int> list = new List<int>() { 0, 3 };
             var filters = getFilters(list);
-            var statement = ExpressionHelper.CreateNewStatementFunc<Person>(filters);
+            var statement = ExpressionHelper.CreateNewStatement<Person>(filters).Compile();
             IEnumerable<Person> result = persons.Where(statement);
             Assert.IsTrue(result.ToList().Count == 1);
         }
