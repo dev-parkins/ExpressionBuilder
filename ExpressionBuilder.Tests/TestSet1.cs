@@ -31,21 +31,40 @@ namespace ExpressionBuilder.Tests
             };
 
         [TestMethod]
-        public void SingleResultMultipleConditions()
+        public void SingleFilterMultipleResults1()
         {
-            var filters = filter.Where(o => o.Contains("lt") || o.Contains("isMarried")).Aggregate((f, s) => $"{f} AND {s}");
+            IList<int> list = new List<int>() { 5 };
+            var filters = getFilters(list);
+            var statement = ExpressionHelper.CreateNewStatementFunc<Person>(filters);
+            IEnumerable<Person> result = persons.Where(statement);
+            Assert.IsTrue(result.ToList().Count == 2);
+        }
+
+        [TestMethod]
+        public void MultipleFiltersSingleResult1()
+        {
+            IList<int> list = new List<int>() { 0, 3 };
+            var filters = getFilters(list);
             var statement = ExpressionHelper.CreateNewStatementFunc<Person>(filters);
             IEnumerable<Person> result = persons.Where(statement);
             Assert.IsTrue(result.ToList().Count == 1);
         }
 
         [TestMethod]
-        public void SingleResult2()
+        public void EmptyStringNullException()
         {
-            var filters = filter.ElementAt(5);
-            var statement = ExpressionHelper.CreateNewStatementFunc<Person>(filters);
-            IEnumerable<Person> result = persons.Where(statement);
-            Assert.IsTrue(result.ToList().Count == 2);
+            Assert.ThrowsException<ArgumentNullException>(() => ExpressionHelper.CreateNewStatement<Person>(String.Empty));
+        }
+
+        public string getFilters(IEnumerable<int> values)
+        {
+            IList<string> list = new List<string>();
+            foreach(var value in values)
+            {
+                list.Add(filter[value]);
+            }
+           
+            return list.Aggregate((f, s) => $"{f} AND {s}"); ;
         }
     }
 }

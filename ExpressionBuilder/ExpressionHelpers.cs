@@ -6,6 +6,9 @@ using System.Linq.Expressions;
 
 namespace ExpressionBuilder
 {
+    /// <summary>
+    /// Contains list of available comparison operations
+    /// </summary>
     enum ops
     {
         lt,
@@ -131,6 +134,12 @@ namespace ExpressionBuilder
             };
         }
 
+        /// <summary>
+        /// Build Right-Hand expression for Query statement. Handles nullables.
+        /// </summary>
+        /// <param name="propType"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static Expression BuildValueExpression(Type propType, string value)
         {
             if (value == null || value.Equals("null")) //temp - magic string 
@@ -138,24 +147,15 @@ namespace ExpressionBuilder
                 return Expression.Constant(null);
             }
 
-            if (propType.IsEquivalentTo(typeof(int)))
+            var convertedValue = Expression.Constant(Convert.ChangeType(value, propType));
+            var boxedType = Nullable.GetUnderlyingType(propType);
+
+            if (boxedType != null)
             {
-                return Expression.Constant(Int32.Parse(value));
-            }
-            else if (propType.IsEquivalentTo(typeof(bool)))
-            {
-                return Expression.Constant(Boolean.Parse(value));
-            }
-            else if (propType.IsEquivalentTo(typeof(DateTime)))
-            {
-                return Expression.Constant(DateTime.Parse(value));
-            }
-            else if (propType.IsEquivalentTo(typeof(DateTime?)))
-            {
-                return Expression.Convert(Expression.Constant(Convert.ToDateTime(value)), typeof(DateTime?));
+                return Expression.Convert(Expression.Constant(Convert.ChangeType(value, boxedType)), propType);
             }
 
-            return Expression.Constant(value);
+            return Expression.Constant(Convert.ChangeType(value, propType));
         }
     }
 }
